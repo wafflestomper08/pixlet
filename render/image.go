@@ -17,6 +17,7 @@ import (
 	"github.com/srwiley/oksvg"
 	"github.com/srwiley/rasterx"
 	"github.com/tronbyt/gg"
+	"github.com/tronbyt/pixlet/internal/colorutil"
 	"go.starlark.net/starlark"
 )
 
@@ -119,6 +120,10 @@ func (p *Image) ColorPixelPercentage(colors []color.Color, bounds image.Rectangl
 	}
 	palette := make(map[color.NRGBA]bool, len(colors))
 	for _, c := range colors {
+		// Avoid a lossy premultiplied round trip for wrapped NRGBA colors.
+		if wrapped, ok := c.(*colorutil.Color); ok {
+			c = wrapped.NRGBA
+		}
 		palette[color.NRGBAModel.Convert(c).(color.NRGBA)] = true
 	}
 	matched := 0

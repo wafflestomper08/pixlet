@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tronbyt/pixlet/internal/colorutil"
 )
 
 func TestImageOpaquePixelPercentage(t *testing.T) {
@@ -67,6 +68,18 @@ func TestImageColorPixelPercentageAlpha(t *testing.T) {
 	pct, err := w.ColorPixelPercentage([]color.Color{wanted}, im.Bounds(), false)
 	require.NoError(t, err)
 	require.Equal(t, 50.0, pct, "RGBA matching includes alpha")
+}
+
+func TestImageColorPixelPercentageWrappedColor(t *testing.T) {
+	wanted := color.NRGBA{R: 1, A: 1}
+	im := image.NewNRGBA(image.Rect(0, 0, 1, 1))
+	im.SetNRGBA(0, 0, wanted)
+	w := &Image{imgs: []image.Image{im}, original: im}
+	for _, original := range []bool{false, true} {
+		pct, err := w.ColorPixelPercentage([]color.Color{&colorutil.Color{NRGBA: wanted}}, im.Bounds(), original)
+		require.NoError(t, err)
+		require.Equal(t, 100.0, pct, "wrapped low-alpha channels must stay exact")
+	}
 }
 
 func TestImageColorPixelPercentageThresholds(t *testing.T) {
